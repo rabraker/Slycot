@@ -333,6 +333,185 @@ def tb04ad(n,m,p,A,B,C,D,tol1=0.0,tol2=0.0,ldwork=None):
     kdcoef = max(index)+1
     return A[:Nr,:Nr],B[:Nr,:m],C[:p,:Nr],Nr,index,dcoeff[:porm,:kdcoef],ucoeff[:porm,:porp,:kdcoef]
 
+
+def tb05ad(n, m, p, jomega, A, B, C, job='all'):
+    """At, Bt, Ct, g_jw, rcond, ev, hinvb = tb05ad_a(n, m, p, jomega, A, B, C):
+    
+    To find the complex frequency response matrix (transfer matrix)
+    G(freq) of the state-space representation (A,B,C) given by
+                                   -1
+       G(freq) = C * ((freq*I - A)  ) * B
+
+    where A, B and C are real N-by-N, N-by-M and P-by-N matrices
+    respectively and freq is a complex scalar.
+
+    Required Arguments
+    ------------------
+
+      n :     integer
+              The number of states, i.e. the order of the state
+              transition matrix A.  
+
+      m :     integer
+              The number of inputs, i.e. the number of columns in the
+              matrix B.  
+
+      P :     integer
+              The number of outputs, i.e. the number of rows in the
+              matrix C.  
+
+      freq    complex
+              The frequency freq at which the frequency response matrix
+              (transfer matrix) is to be evaluated. For continuous time
+              systems, this is j*omega, where omega is the frequency to
+              be evaluated. For discrete time systems,
+              freq = exp(j*omega*Ts)
+
+      A :     double precision array, dimension (n,n).
+              On entry, this array must contain the state transition
+              matrix A.
+
+
+      B :     double precision array, dimension (n,m).
+              On entry, this array must contain the input/state matrix B.
+
+
+      C :    double precision array, dimension (p,n)
+             On entry, of this array must contain the state/output matrix C.
+
+      job :  string. 'all' or 'hess'
+             If job = 'all', the system matrices are transformed to an upper
+             hessenberg representation. If job = 'hess', the function assumes
+             the matrices already have been transformed, ie, by a previous
+             function call.
+
+    Returns
+    -------
+    if job = 'all':
+    --------------
+      At:    The matrix A transformed to upper Hessenberg form. The lower
+             triangle is not zero. It containts info on the orthoganal
+             transformation. See docs for linpack DGEHRD()
+             http://www.netlib.org/lapack/explore-3.1.1-html/dgehrd.f.html
+
+      Bt:    The transpose of the orthoganal transformation used to reduce A
+             to Hessenberg form multiplied by the matrix B.
+
+      Ct:    The matrix C multiplied by the the orthoganal transformation used
+             to reduce A to Hessenberg.
+
+      rcond: RCOND contains an estimate of the reciprocal of the
+             condition number of matrix H with respect to inversion.
+
+      g_jw: complex array. The leading P-by-M part of this array contains
+            the frequency response matrix G(freq).
+
+      ev:   Eigenvalues of the matrix A.
+
+      hinvb : complex array, dimension (p,m)
+              The leading N-by-M part of this array contains the
+                      -1
+             product H  B.
+    if job = 'hess'
+    --------------
+       g_jw: complex array. The leading P-by-M part of this array contains
+            the frequency response matrix G(freq).
+       hinvb : complex array, dimension (p,m)
+              The leading N-by-M part of this array contains the
+                      -1
+             product H  B.
+
+
+    Raises
+    ------
+      ValueError : e
+        e.infor contains information about the exact type of exception.
+         < 0 : if infor = -i, the ith argument had an illegal value;
+         = 1 : More than 30 iterations were required to isolate the
+               eigenvalues of A. The computation is continued ?.
+         = 2 : Either FREQ is too near to an eigenvalue of A, or RCOND
+               is less than the machine precision EPS.
+
+    Example
+    -------
+    >>> A = np.array([[0.0, 1.0],
+                [-100.0,   -20.1]),
+    >>> B = np.array([[0.],[100]])
+    >>> C = np.array([[1., 0.]])
+    >>> n = np.shape(A)[0]
+    >>> m = np.shape(B)[1]
+    >>> p = np.shape(C)[0]
+    >>> jw_s = [1j*10, 1j*15]
+    >>> at, bt, ct, g_1, rcond, ev, hinvb = tb05ad_a(n, m, p, jw_s[0], A, B, C, job='all')
+    >>> g_2, hinv2 = tb05ad_a(n, m, p, jw_s[1], at, bt, ct, job='hess')
+
+    """
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['baleig'+hidden, 'inita'+hidden, 'n', 'm', 'p', 'freq', 'a',
+                'lda'+hidden, 'b', 'ldb'+hidden, 'c', 'ldc'+hidden, 'rcond',
+                'g', 'ldg'+hidden, 'evre', 'evim', 'hinvb', 'ldhinv'+hidden,
+                'iwork'+hidden, 'dwork'+hidden, 'ldwork'+hidden,
+                'zwork'+hidden, 'lzwork'+hidden, 'info'+hidden]
+# baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,evim,hinvb,ldhinv,
+# iwork,dwork,ldwork,zwork,lzwork,info)
+
+    def error_handler(out, arg_list):
+        if out[-1] < 0:
+            error_text = ("The following argument had an illegal value: "
+                          + arg_list[-out[-1]-1])
+            e = ValueError(error_text)
+            e.info = out[-1]
+            raise e
+        if out[-1] == 1:
+            error_text = ("More than 30*"+str(n)+"iterations are required "
+                          "to iso late the eigenvalue of A; the computations "
+                          "are continued.")
+            e = ValueError(error_text)
+            e.info = out[-1]
+            raise e
+        if out[-1] == 2:
+            error_text = ("Either FREQ is too near to an eigenvalue of A, or "
+                          "RCOND is less than the machine precision EPS.")
+            e = ValueError(error_text)
+            e.info = out[-1]
+            raise e
+
+    if B.shape != (n, m):
+        e = ValueError("The shape of B is (" + str(B.shape[0]) + "," +
+                       str(B.shape[1]) + "), but expected (" + str(n) +
+                       "," + str(m) + ")")
+        e.info = -6
+        raise e
+    if C.shape != (p, n):
+        e = ValueError("The shape of C is (" + str(C.shape[0]) + "," +
+                       str(C.shape[1]) + "), but expected (" + str(p) +
+                       "," + str(n) + ")")
+        e.info = -8
+        raise e
+
+    # ----------------------------------------------------
+    # Checks done, do computation.
+    if job == 'all':
+        out = _wrapper.tb05ad_a(n, m, p, jomega, A, B, C)
+        error_handler(out, arg_list)
+        At, Bt, Ct, rcond, g_jw, evre, evim, hinvb = out[:-1]
+        ev = _np.zeros(n, 'complex64')
+        ev.real = evre
+        ev.imag = evim
+        return At, Bt, Ct, g_jw, rcond, ev, hinvb
+    elif job == 'hess':
+        out = _wrapper.tb05ad_h(n, m, p, jomega, A, B, C)
+        error_handler(out, arg_list)
+
+        g_i, hinvb = out[:-1]
+        return g_i, hinvb
+    else:
+        error_text = ("Unrecognized job. Requre job = 'all' or "
+                      "job = 'hess'")
+        e = ValueError(error_text)
+        raise e
+
+
 def td04ad(rowcol,m,p,index,dcoeff,ucoeff,tol=0.0,ldwork=None):
     """ nr,A,B,C,D = td04ad(m,p,index,dcoeff,ucoeff,[tol,ldwork])
 
