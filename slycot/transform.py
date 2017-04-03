@@ -492,19 +492,103 @@ def tb05ad(n, m, p, jomega, A, B, C, job='all'):
     # ----------------------------------------------------
     # Checks done, do computation.
     if job == 'all':
-        out = _wrapper.tb05ad_a(n, m, p, jomega, A, B, C)
+        # use tb05ad_ng, for 'NONE' , and 'General', because balancing
+        # (option 'A' for 'ALL') seems to have  a bug.
+        out = _wrapper.tb05ad_ng(n, m, p, jomega, A, B, C)
+        error_handler(out, arg_list)
+        # these commented out are for tb05ad_ag
+        # At, Bt, Ct, rcond, g_jw, evre, evim, hinvb = out[:-1]
+        # ev = _np.zeros(n, 'complex64')
+        # ev.real = evre
+        # ev.imag = evim
+        # return At, Bt, Ct, g_jw, rcond, ev, hinvb, info
+        At, Bt, Ct, g_jw, hinvb = out[:-1]
+        info = out[-1]
+        
+        return At, Bt, Ct, g_jw, hinvb, info
+    elif job == 'hess':
+        out = _wrapper.tb05ad_nh(n, m, p, jomega, A, B, C)
+        error_handler(out, arg_list)
+
+        g_i, hinvb = out[:-1]
+        info = out[-1]
+        return g_i, hinvb, info
+    else:
+        error_text = ("Unrecognized job. Requre job = 'all' or "
+                      "job = 'hess'")
+        e = ValueError(error_text)
+        raise e
+
+    
+def tb05ad_ag(n, m, p, jomega, A, B, C, job='all'):
+    """At, Bt, Ct, g_jw, rcond, ev, hinvb = tb05ad_a(n, m, p, jomega, A, B, C):
+    
+    To find the complex frequency response matrix (transfer matrix)
+    G(freq) of the state-space representation (A,B,C) given by
+                                   -1
+       G(freq) = C * ((freq*I - A)  ) * B
+
+    where A, B and C are real N-by-N, N-by-M and P-by-N matrices
+    respectively and freq is a complex scalar."""
+
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['baleig'+hidden, 'inita'+hidden, 'n', 'm', 'p', 'freq', 'a',
+                'lda'+hidden, 'b', 'ldb'+hidden, 'c', 'ldc'+hidden, 'rcond',
+                'g', 'ldg'+hidden, 'evre', 'evim', 'hinvb', 'ldhinv'+hidden,
+                'iwork'+hidden, 'dwork'+hidden, 'ldwork'+hidden,
+                'zwork'+hidden, 'lzwork'+hidden, 'info'+hidden]
+
+# baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,evim,hinvb,ldhinv,
+# iwork,dwork,ldwork,zwork,lzwork,info)
+
+    def error_handler(out, arg_list):
+        if out[-1] < 0:
+            error_text = ("The following argument had an illegal value: "
+                          + arg_list[-out[-1]-1])
+            e = ValueError(error_text)
+            e.info = out[-1]
+            raise e
+        if out[-1] == 1:
+            error_text = ("More than 30*"+str(n)+"iterations are required "
+                          "to iso late the eigenvalue of A; the computations "
+                          "are continued.")
+            e = ValueError(error_text)
+            e.info = out[-1]
+            raise e
+        if out[-1] == 2:
+            error_text = ("Either FREQ is too near to an eigenvalue of A, or "
+                          "RCOND is less than the machine precision EPS.")
+            e = ValueError(error_text)
+            e.info = out[-1]
+            raise e
+
+    if B.shape != (n, m):
+        e = ValueError("The shape of B is (" + str(B.shape[0]) + "," +
+                       str(B.shape[1]) + "), but expected (" + str(n) +
+                       "," + str(m) + ")")
+        e.info = -6
+        raise e
+    if C.shape != (p, n):
+        e = ValueError("The shape of C is (" + str(C.shape[0]) + "," +
+                       str(C.shape[1]) + "), but expected (" + str(p) +
+                       "," + str(n) + ")")
+        e.info = -8
+        raise e
+
+    # ----------------------------------------------------
+    # Checks done, do computation.
+    if job == 'all':
+        out = _wrapper.tb05ad_ag(n, m, p, jomega, A, B, C)
         error_handler(out, arg_list)
         At, Bt, Ct, rcond, g_jw, evre, evim, hinvb = out[:-1]
         ev = _np.zeros(n, 'complex64')
         ev.real = evre
         ev.imag = evim
-        return At, Bt, Ct, g_jw, rcond, ev, hinvb
-    elif job == 'hess':
-        out = _wrapper.tb05ad_h(n, m, p, jomega, A, B, C)
-        error_handler(out, arg_list)
+        info = out[-1]
+        return At, Bt, Ct, g_jw, rcond, ev, hinvb, info
 
-        g_i, hinvb = out[:-1]
-        return g_i, hinvb
+
+        return At, Bt, Ct, g_jw, hinvb, info
     else:
         error_text = ("Unrecognized job. Requre job = 'all' or "
                       "job = 'hess'")

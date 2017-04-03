@@ -136,7 +136,7 @@ subroutine tb04ad_c(rowcol,n,m,p,a,lda,b,ldb,c,ldc,d,ldd,nr,index_bn,dcoeff,lddc
     integer optional :: ldwork = max(1,n*(n+1)+max(n*p+2*n+max(n,p),max(3*p,m)))
     integer intent(out) :: info
   end subroutine tb04ad_c
-subroutine tb05ad_a(baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,evim,hinvb,ldhinv,iwork,dwork,ldwork,zwork,lzwork,info)
+subroutine tb05ad_ag(baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,evim,hinvb,ldhinv,iwork,dwork,ldwork,zwork,lzwork,info)
   fortranname tb05ad
   character intent(hide) :: baleig = 'A'
   character intent(hide) :: inita = 'G'
@@ -164,8 +164,38 @@ subroutine tb05ad_a(baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,e
   complex*16 intent(hide,cache),dimension(lzwork),depend(n) :: zwork
   integer optional :: lzwork = n*n+2*n
   integer intent(out) :: info
-end subroutine tb05ad_a
-subroutine tb05ad_h(baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,evim,hinvb,ldhinv,iwork,dwork,ldwork,zwork,lzwork,info)
+end subroutine tb05ad_ag
+subroutine tb05ad_ng(baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,evim,hinvb,ldhinv,iwork,dwork,ldwork,zwork,lzwork,info)
+  fortranname tb05ad
+  character intent(hide) :: baleig = 'N'
+  character intent(hide) :: inita = 'G'
+  integer check(n>0) :: n
+  integer check(m>0) :: m
+  integer check(p>0) :: p
+  complex*16 intent(in) :: freq
+  double precision intent(in,out,copy),dimension(n,n),depend(n) :: a
+  integer intent(hide),depend(a) :: lda=shape(a,0)
+  double precision intent(in,out,copy),dimension(n,m),depend(n,m) :: b
+  integer intent(hide),depend(b) :: ldb=shape(b,0)
+  double precision intent(in,out,copy),dimension(p,n),depend(n,p) :: c
+  integer intent(hide),depend(c) :: ldc=shape(c,0)
+  double precision intent(hide) :: rcond
+  complex*16 intent(out),dimension(ldg,m),depend(ldg,m) :: g
+  integer intent(hide),depend(p) :: ldg = p
+  double precision intent(hide),dimension(n),depend(n):: evre
+  double precision intent(hide),dimension(n),depend(n):: evim
+  complex*16 intent(out),dimension(ldhinv,m),depend(ldhinv,m) :: hinvb
+  integer intent(hide),depend(n) :: ldhinv = n
+  ! cache variables
+  integer intent(hide,cache),dimension(n) :: iwork
+  double precision intent(hide,cache),dimension(2*n),depend(n) :: dwork
+  integer optional :: ldwork = 2*n
+  complex*16 intent(hide,cache),dimension(lzwork),depend(n) :: zwork
+  integer optional :: lzwork = n*n+2*n
+  integer intent(out) :: info
+end subroutine tb05ad_ng
+
+subroutine tb05ad_nh(baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,evim,hinvb,ldhinv,iwork,dwork,ldwork,zwork,lzwork,info)
   ! The case where A is already balanced and hessenberg
   fortranname tb05ad
   character intent(hide) :: baleig = 'N'
