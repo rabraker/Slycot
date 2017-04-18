@@ -53,7 +53,6 @@ class Test(unittest.TestCase):
         """Regression: td04ad (TFM -> SS transformation) for static TFM"""
         import numpy as np
         from itertools import product
-        print 'test td04'
         # 'C' fails on static TFs
         for nout,nin,rc in product(range(1,6),range(1,6),['R']):
             num = np.reshape(np.arange(nout*nin),(nout,nin,1))

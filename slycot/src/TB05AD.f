@@ -364,7 +364,7 @@ C
 C                    Permute columns of C.
 C
                      IF ( P.GT.0 )
-     $                    CALL DSWAP( P, C(1,JJ), 1, C(1,JP), 1 )
+     $                   CALL DSWAP( P, C(1,JJ), 1, C(1,JP), 1 )
                   END IF
                END IF
    10       CONTINUE
