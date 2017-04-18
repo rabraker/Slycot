@@ -159,10 +159,10 @@ subroutine tb05ad_ag(baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,
   integer intent(hide),depend(n) :: ldhinv = n
   ! cache variables
   integer intent(hide,cache),dimension(n) :: iwork
-  double precision intent(hide,cache),dimension(2*n),depend(n) :: dwork
-  integer optional :: ldwork = 2*n
-  complex*16 intent(hide,cache),dimension(lzwork),depend(n) :: zwork
-  integer optional :: lzwork = n*n+2*n
+  double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+  integer optional,depend(n) :: ldwork = 2*n
+  complex*16 intent(hide,cache),dimension(lzwork),depend(lzwork) :: zwork
+  integer optional,depend(n) :: lzwork = n*n+2*n
   integer intent(out) :: info
 end subroutine tb05ad_ag
 subroutine tb05ad_ng(baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,evim,hinvb,ldhinv,iwork,dwork,ldwork,zwork,lzwork,info)
@@ -188,10 +188,10 @@ subroutine tb05ad_ng(baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,
   integer intent(hide),depend(n) :: ldhinv = n
   ! cache variables
   integer intent(hide,cache),dimension(n) :: iwork
-  double precision intent(hide,cache),dimension(2*n),depend(n) :: dwork
-  integer optional :: ldwork = 2*n
-  complex*16 intent(hide,cache),dimension(lzwork),depend(n) :: zwork
-  integer optional :: lzwork = n*n+2*n
+  double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+  integer optional,depend(n) :: ldwork = 2*n
+  complex*16 intent(hide,cache),dimension(lzwork),depend(lzwork) :: zwork
+  integer optional,depend(n) :: lzwork = n*n+2*n
   integer intent(out) :: info
 end subroutine tb05ad_ng
 
@@ -219,10 +219,10 @@ subroutine tb05ad_nh(baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,
   integer intent(hide),depend(n) :: ldhinv = n
   ! cache variables
   integer intent(hide,cache),dimension(n) :: iwork
-  double precision intent(hide,cache),dimension(2*n),depend(n) :: dwork
-  integer optional :: ldwork = 2*n
-  complex*16 intent(hide,cache),dimension(lzwork),depend(n) :: zwork
-  integer optional :: lzwork = n*n+2*n
+  double precision intent(hide,cache),dimension(ldwork),depend(ldwork) :: dwork
+  integer optional,depend(n) :: ldwork = 2*n
+  complex*16 intent(hide,cache),dimension(lzwork),depend(lzwork) :: zwork
+  integer optional,depend(n) :: lzwork = n*n+2*n
   integer intent(out) :: info
 end subroutine tb05ad_h
 

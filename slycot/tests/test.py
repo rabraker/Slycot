@@ -67,129 +67,105 @@ class Test(unittest.TestCase):
 # ===================================================
 # Begin tb05ad tests
 import numpy as np
-from control import ss
 
-from scipy import linalg
 from numpy.testing import assert_raises, assert_almost_equal
 from numpy.testing import assert_array_almost_equal, dec
 
 CASES = {}
 
-CASES['fail1'] = ss(np.array([[-0.5,  0.,  0.,  0. ],
+CASES['fail1'] = {'A': np.array([[-0.5,  0.,  0.,  0. ],
                               [ 0., -1.,  0. ,  0. ],
                               [ 1.,  0., -0.5,  0. ],
                               [ 0.,  1.,  0., -1. ]]),
-                   np.array([[ 1.,  0.],
+                   'B': np.array([[ 1.,  0.],
                              [ 0.,  1.],
                              [ 0.,  0.],
                              [ 0.,  0.]]),
-                   np.array([[ 0.,  1.,  1.,  0.],
+                   'C': np.array([[ 0.,  1.,  1.,  0.],
                              [ 0.,  1.,  0.,  1.],
-                             [ 0.,  1.,  1.,  1.]]),
-                    np.zeros([3,2])   )
+                             [ 0.,  1.,  1.,  1.]])}
 
 n = 20
 p = 10
 m = 14
 np.random.seed(40)
-CASES['pass1'] = ss(np.random.rand(n, n),
-                    np.random.rand(n, m),
-                    np.random.rand(p, n),
-                     np.zeros([p,m]))
+
+CASES['pass1'] = {'A': np.random.rand(n, n),
+                  'B':  np.random.rand(n, m),
+                  'C':  np.random.rand(p, n)}
+
 
 class test_tb05ad(unittest.TestCase):
 
     def setUp(self):
         pass
 
-    CASES = {}
-
-    CASES['fail1'] = ss(np.array([[-0.5,  0.,  0.,  0. ],
-                                  [ 0., -1.,  0. ,  0. ],
-                                  [ 1.,  0., -0.5,  0. ],
-                                  [ 0.,  1.,  0., -1. ]]),
-                       np.array([[ 1.,  0.],
-                                 [ 0.,  1.],
-                                 [ 0.,  0.],
-                                 [ 0.,  0.]]),
-                       np.array([[ 0.,  1.,  1.,  0.],
-                                 [ 0.,  1.,  0.,  1.],
-                                 [ 0.,  1.,  1.,  1.]]),
-                        np.zeros([3,2])   )
-
-    n = 20
-    p = 10
-    m = 14
-    np.random.seed(40)
-    CASES['pass1'] = ss(np.random.rand(n, n),
-                        np.random.rand(n, m),
-                        np.random.rand(p, n),
-                         np.zeros([p,m]))
-
-
     def test_tb05ad_ng(self):
         for key in CASES:
             sys = CASES[key]
             self.check_tb05ad_AG_NG(sys, 10*1j, 'NG')
 
-
-    @dec.knownfailureif
+    @dec.knownfailureif(True)
     def test_tb05ad_ag_failure(self):
         # Test the failure when we do balancing on certain A matrices.
-        self.check_tb05ad_AG_NG(CASES['fail1'], 'AG')
-
+        self.check_tb05ad_AG_NG(CASES['fail1'], 10*1j, 'AG')
 
     def test_tb05ad_nh(self):
         # Test the conversion to Hessenberg form and subsequent solution.
         jomega = 10*1j
         for key in CASES:
             sys = CASES[key]
-            sys2 = self.check_tb05ad_AG_NG(sys, jomega, 'NG')
-            self.check_tb05ad_NH(sys2, sys, jomega)
-
+            sys_transformed = self.check_tb05ad_AG_NG(sys, jomega, 'NG')
+            self.check_tb05ad_NH(sys_transformed, sys, jomega)
 
     # Check error handling.
     def test_tb05ad_errors(self):
         self.check_tb05ad_errors(CASES['pass1'])
 
-
     def check_tb05ad_AG_NG(self, sys, jomega, job):
-        result = transform.tb05ad(sys.states, sys.inputs, sys.outputs, jomega,
-                                  sys.A, sys.B, sys.C, job=job)
+        n, m = sys['B'].shape
+        p = sys['C'].shape[0]
+        result = transform.tb05ad(n, m, p, jomega,
+                                  sys['A'], sys['B'], sys['C'], job=job)
         g_i = result[3]
-        hinvb = linalg.solve(np.eye(sys.states) * jomega - sys.A, sys.B)
-        g_i_solve = sys.C.dot(hinvb)
+        hinvb = np.linalg.solve(np.eye(n) * jomega - sys['A'], sys['B'])
+        g_i_solve = sys['C'].dot(hinvb)
         np.testing.assert_almost_equal(g_i_solve, g_i)
-        return ss(result[0], result[1], result[2], sys.D)
-
+        sys_transformed = {'A': result[0], 'B': result[1], 'C': result[2]}
+        return sys_transformed
 
     def check_tb05ad_NH(self, sys_transformed, sys, jomega):
-        # When input matrices are already Hessenberg, output format changes.
-        result = transform.tb05ad(sys_transformed.states, sys_transformed.inputs,
-                                  sys_transformed.outputs, jomega,
-                                  sys_transformed.A, sys_transformed.B,
-                                  sys_transformed.C, job='NH')
+        # Check that computing frequency response on the transformed
+        # system gives the same result as computing C(sI - A)^-1B with
+        # the original system.
+
+        n, m = sys_transformed['B'].shape
+        p = sys_transformed['C'].shape[0]
+        result = transform.tb05ad(n, m, p, jomega, sys_transformed['A'],
+                                  sys_transformed['B'], sys_transformed['C'],
+                                  job='NH')
         g_i = result[0]
-        hinvb = linalg.solve(np.eye(sys.states) * jomega - sys.A, sys.B)
-        g_i_solve = sys.C.dot(hinvb)
+        hinvb = np.linalg.solve(np.eye(n) * jomega - sys['A'], sys['B'])
+        g_i_solve = sys['C'].dot(hinvb)
         np.testing.assert_almost_equal(g_i_solve, g_i)
 
-
     def check_tb05ad_errors(self, sys):
+        n, m = sys['B'].shape
+        p = sys['C'].shape[0]
         jomega = 10*1j
         # test error handling
         # wrong size A
-        assert_raises(ValueError, transform.tb05ad, sys.states+1,
-                      sys.inputs, sys.outputs, jomega, sys.A, sys.B, sys.C, job='NH')
+        assert_raises(ValueError, transform.tb05ad, n+1, m, p,
+                      jomega, sys['A'], sys['B'], sys['C'], job='NH')
         # wrong size B
-        assert_raises(ValueError, transform.tb05ad, sys.states,
-                      sys.inputs+1, sys.outputs, jomega, sys.A, sys.B, sys.C, job='NH')
+        assert_raises(ValueError, transform.tb05ad, n, m+1, p,
+                      jomega, sys['A'], sys['B'], sys['C'], job='NH')
         # wrong size C
-        assert_raises(ValueError, transform.tb05ad,sys.states,
-                      sys.inputs, sys.outputs+1, jomega, sys.A, sys.B, sys.C, job='NH')
+        assert_raises(ValueError, transform.tb05ad, n, m, p+1,
+                      jomega, sys['A'], sys['B'], sys['C'], job='NH')
         # unrecognized job
-        assert_raises(ValueError, transform.tb05ad,sys.states,
-                      sys.inputs, sys.outputs, jomega, sys.A, sys.B, sys.C, job='a')
+        assert_raises(ValueError, transform.tb05ad, n, m, p, jomega,
+                      sys['A'], sys['B'], sys['C'], job='a')
 
 
 

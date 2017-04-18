@@ -334,7 +334,7 @@ def tb04ad(n,m,p,A,B,C,D,tol1=0.0,tol2=0.0,ldwork=None):
     return A[:Nr,:Nr],B[:Nr,:m],C[:p,:Nr],Nr,index,dcoeff[:porm,:kdcoef],ucoeff[:porm,:porp,:kdcoef]
 
 
-def tb05ad(n, m, p, jomega, A, B, C, job='all'):
+def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
     """At, Bt, Ct, g_jw, rcond, ev, hinvb = tb05ad_a(n, m, p, jomega, A, B, C):
     
     To find the complex frequency response matrix (transfer matrix)
@@ -483,19 +483,22 @@ def tb05ad(n, m, p, jomega, A, B, C, job='all'):
     Example
     -------
     >>> A = np.array([[0.0, 1.0],
-                [-100.0,   -20.1]),
+                [-100.0,   -20.1]])
     >>> B = np.array([[0.],[100]])
     >>> C = np.array([[1., 0.]])
     >>> n = np.shape(A)[0]
     >>> m = np.shape(B)[1]
     >>> p = np.shape(C)[0]
     >>> jw_s = [1j*10, 1j*15]
-    >>> at, bt, ct, g_1, rcond, ev, hinvb = tb05ad(n, m, p, jw_s[0], A, B, C, job='NG')
-    >>> g_2, hinv2 = tb05ad(n, m, p, jw_s[1], at, bt, ct, job='NH')
+    >>> at, bt, ct, g_1, hinvb, info = slycot.tb05ad(n, m, p, jw_s[0],
+                                                    A, B, C, job='NG')
+    >>> g_2, hinv2,info = slycot.tb05ad(n, m, p, jw_s[1], at, bt, ct, job='NH')
 
     """
     def error_handler(out, arg_list):
         if out[-1] < 0:
+            # Conform fortran 1-based argument indexing to
+            # to python zero indexing.
             error_text = ("The following argument had an illegal value: "
                           + arg_list[-out[-1]-1])
             e = ValueError(error_text)
@@ -525,25 +528,25 @@ def tb05ad(n, m, p, jomega, A, B, C, job='all'):
     # TB05AD(baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,evim,hinvb,ldhinv,
     # iwork,dwork,ldwork,zwork,lzwork,info)
 
-    # Sanity check on matrix dimenations
+    # Sanity check on matrix dimensions
     if A.shape != (n, n):
         e = ValueError("The shape of A is (" + str(A.shape[0]) + "," +
                        str(A.shape[1]) + "), but expected (" + str(n) +
-                       "," + str(m) + ")")
-        e.info = -6
+                       "," + str(n) + ")")
+        e.info = -6  
         raise e
 
     if B.shape != (n, m):
         e = ValueError("The shape of B is (" + str(B.shape[0]) + "," +
                        str(B.shape[1]) + "), but expected (" + str(n) +
                        "," + str(m) + ")")
-        e.info = -6
+        e.info = -8
         raise e
     if C.shape != (p, n):
         e = ValueError("The shape of C is (" + str(C.shape[0]) + "," +
                        str(C.shape[1]) + "), but expected (" + str(p) +
                        "," + str(n) + ")")
-        e.info = -8
+        e.info = -10
         raise e
 
     # ----------------------------------------------------
