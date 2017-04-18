@@ -347,6 +347,10 @@ C           defined in the subroutine DGEBAL.
 C
             DO 10 J = 1, N
                JJ = J
+C     Proposed fix. Basically, I believe they do this backwards. The DGEBAL
+C     documentations says that rows/cols are permuted going from N to IGH+1, then
+C     from 1 to LO-1. They go in the opposite direction here. 
+C               JJ = N + 1 - J
                IF ( JJ.LT.LOW .OR. JJ.GT.IGH ) THEN
                   IF ( JJ.LT.LOW ) JJ = LOW - JJ
                   JP = DWORK(JJ)
