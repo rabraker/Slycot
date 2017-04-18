@@ -129,7 +129,6 @@ class test_tb05ad(unittest.TestCase):
 
 
     def test_tb05ad_ng(self):
-        print 'test tb05ad'
         for key in CASES:
             sys = CASES[key]
             self.check_tb05ad_AG_NG(sys, 10*1j, 'NG')
