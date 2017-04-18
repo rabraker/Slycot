@@ -334,7 +334,7 @@ def tb04ad(n,m,p,A,B,C,D,tol1=0.0,tol2=0.0,ldwork=None):
     return A[:Nr,:Nr],B[:Nr,:m],C[:p,:Nr],Nr,index,dcoeff[:porm,:kdcoef],ucoeff[:porm,:porp,:kdcoef]
 
 
-def tb05ad(n, m, p, jomega, A, B, C, job='all'):
+def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
     """At, Bt, Ct, g_jw, rcond, ev, hinvb = tb05ad_a(n, m, p, jomega, A, B, C):
     
     To find the complex frequency response matrix (transfer matrix)
@@ -525,7 +525,7 @@ def tb05ad(n, m, p, jomega, A, B, C, job='all'):
     # TB05AD(baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,evim,hinvb,ldhinv,
     # iwork,dwork,ldwork,zwork,lzwork,info)
 
-    # Sanity check on matrix dimenations
+    # Sanity check on matrix dimensions
     if A.shape != (n, n):
         e = ValueError("The shape of A is (" + str(A.shape[0]) + "," +
                        str(A.shape[1]) + "), but expected (" + str(n) +
