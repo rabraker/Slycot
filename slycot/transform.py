@@ -529,7 +529,7 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
     if A.shape != (n, n):
         e = ValueError("The shape of A is (" + str(A.shape[0]) + "," +
                        str(A.shape[1]) + "), but expected (" + str(n) +
-                       "," + str(m) + ")")
+                       "," + str(n) + ")")
         e.info = -6
         raise e
 
