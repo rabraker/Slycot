@@ -381,23 +381,23 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
 
 
       job : string, 'AG', 'NG', or 'NH'
-            If job = 'AG' ('all', 'general matrix', the A matrix is
-            first balanced via lapack routine DGEBAL. The same transformation
+            If job = 'AG' (i.e., 'all', 'general matrix'), the A matrix is
+            first balanced. The balancing transformation
             is then appropriately applied to matrices B and C. The A matrix
             is (again) transformed to an upper Hessenberg representation and
             the B and C matrices are also transformed. In addition,
             the condition number of the problem is calculated as well as the
             eigenvalues of A.
 
-            If job='NG', no balancing is done. Neither the condition
-            number nor the eigenvalues are calculated. The routine
-            still transforms A into upper Hessenberg form. The
+            If job='NG' (i.e., 'none', 'general matrix'), no balancing is done.
+            Neither the condition number nor the eigenvalues are calculated.
+            The routine still transforms A into upper Hessenberg form. The
             matrices B and C are also appropriately transformed.
 
-            If job = 'NH', the function assumes the matrices have
-            already been transformed into Hessenberg form, i.e., by a
-            previous function call tb05ad. If this not the case, the
-            routine will return a wrong result without warning.
+            If job = 'NH' (i.e., 'none', 'hessenberg matrix'), the function
+            assumes the matrices have already been transformed into Hessenberg
+            form, i.e., by a previous function call tb05ad. If this not the
+            case, the routine will return a wrong result without warning.
 
     Returns
     -------
@@ -405,14 +405,14 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
     --------------
       At:  The A matrix which has been both balanced and
            transformed to upper Hessenberg form. The balancing
-           transforms A according
+           transforms A according to
                       A1 =   P^-1 * A * P.
            The transformation to upper Hessenberg form then yields
                       At = Q^T * (P^-1 * A * P ) * Q.
            Note that the lower triangle of At is in general not zero.
            Rather, it contains information on the orthogonal matrix Q
            used to transform A1 to Hessenberg form. See docs for lappack
-           DGEHRD(): 
+           DGEHRD():
            http://www.netlib.org/lapack/explore-3.1.1-html/dgehrd.f.html
            However, it does not apparently contain information on P, the
            matrix used in the balancing procedure.
@@ -450,10 +450,10 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
 
       Ct:    The matrix C transformed according to
                       Ct = C * Q
-      g_jw:  complex array. A  p-by-m this array contains the frequency
+      g_jw:  complex array with dim p-by-m which contains the frequency
              response matrix G(freq).
 
-      hinvb : complex array, dimension (p,m)
+      hinvb : complex array with dimension p-by-m.
               This array contains the
                       -1
              product H  B.
