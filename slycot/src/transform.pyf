@@ -135,8 +135,10 @@ subroutine tb04ad_c(rowcol,n,m,p,a,lda,b,ldb,c,ldc,d,ldd,nr,index_bn,dcoeff,lddc
     double precision intent(hide,cache),dimension(ldwork) :: dwork
     integer optional :: ldwork = max(1,n*(n+1)+max(n*p+2*n+max(n,p),max(3*p,m)))
     integer intent(out) :: info
-  end subroutine tb04ad_c
+end subroutine tb04ad_c
 subroutine tb05ad_ag(baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,evim,hinvb,ldhinv,iwork,dwork,ldwork,zwork,lzwork,info)
+  ! The case where A is is a general matrix that should be balanced
+  ! and converted to upper Hessenberg form.
   fortranname tb05ad
   character intent(hide) :: baleig = 'A'
   character intent(hide) :: inita = 'G'
@@ -166,6 +168,8 @@ subroutine tb05ad_ag(baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,
   integer intent(out) :: info
 end subroutine tb05ad_ag
 subroutine tb05ad_ng(baleig,inita,n,m,p,freq,a,lda,b,ldb,c,ldc,rcond,g,ldg,evre,evim,hinvb,ldhinv,iwork,dwork,ldwork,zwork,lzwork,info)
+  ! The case where A is is a general matrix that should not be
+  ! balanced but is only converted to upper Hessenberg form.
   fortranname tb05ad
   character intent(hide) :: baleig = 'N'
   character intent(hide) :: inita = 'G'
