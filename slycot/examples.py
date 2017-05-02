@@ -242,6 +242,11 @@ def tb01pd_example():
 
 
 def tb05ad_example():
+    """
+    Example of calculating the frequency response using tb05ad
+    on a second-order system with a natural frequency of 10 rad/s
+    and damping ratio of 1.05.
+    """
     import numpy as np
     A = np.array([[0.0, 1.0],
                   [-100.0,   -20.1]])
