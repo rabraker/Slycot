@@ -335,8 +335,8 @@ def tb04ad(n,m,p,A,B,C,D,tol1=0.0,tol2=0.0,ldwork=None):
 
 
 def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
-    """At, Bt, Ct, g_jw, rcond, ev, hinvb = tb05ad_a(n, m, p, jomega, A, B, C):
-    
+    """tb05ad(n, m, p, jomega, A, B, C, job='NG')
+
     To find the complex frequency response matrix (transfer matrix)
     G(freq) of the state-space representation (A,B,C) given by
                                    -1
@@ -382,19 +382,17 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
 
       job : string, 'AG', 'NG', or 'NH'
             If job = 'AG' ('all', 'general matrix', the A matrix is
-            first balanced via lapack routine DGEBAL with an orthoganal
-            similarity transformation. This involves row and column
-            permutations and diagonal scaling. The transformation is then
-            appropriately applied to matrices B and C. Then, the A matrix is
-            transformed to an upper hessenberg representation and the B and C
-            matrices are also transformed. In addition, the condition number
-            of the problem is calculated as well as the eigenvalues of A.
+            first balanced via lapack routine DGEBAL. The same transformation
+            is then appropriately applied to matrices B and C. The A matrix
+            is (again) transformed to an upper Hessenberg representation and
+            the B and C matrices are also transformed. In addition,
+            the condition number of the problem is calculated as well as the
+            eigenvalues of A.
 
             If job='NG', no balancing is done. Neither the condition
             number nor the eigenvalues are calculated. The routine
             still transforms A into upper Hessenberg form. The
             matrices B and C are also appropriately transformed.
-
 
             If job = 'NH', the function assumes the matrices have
             already been transformed into Hessenberg form, i.e., by a
@@ -412,11 +410,11 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
            The transformation to upper Hessenberg form then yields
                       At = Q^T * (P^-1 * A * P ) * Q.
            Note that the lower triangle of At is in general not zero.
-           Rather, it contains information on the orthoganal matrix Q
+           Rather, it contains information on the orthogonal matrix Q
            used to transform A1 to Hessenberg form. See docs for lappack
            DGEHRD(): 
            http://www.netlib.org/lapack/explore-3.1.1-html/dgehrd.f.html
-           However, it does not apparently to contain information on P, the
+           However, it does not apparently contain information on P, the
            matrix used in the balancing procedure.
 
       Bt:  The matrix B transformed according to
@@ -437,7 +435,7 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
       hinvb : complex n-by-m array, which  contains the product
                -1
               H  B.
-    
+
     if job = 'NG':
     --------------
       At:    The matrix A transformed to upper Hessenberg form according
@@ -459,7 +457,7 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
               This array contains the
                       -1
              product H  B.
-    
+
     if job = 'NH'
     --------------
       g_jw:  complex p-by-m array which contains the frequency
@@ -505,8 +503,8 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
             e.info = out[-1]
             raise e
         if out[-1] == 1:
-            error_text = ("More than 30*"+str(n)+"iterations are required "
-                          "to iso late the eigenvalue of A; the computations "
+            error_text = ("More than 30 iterations are required "
+                          "to isolate the eigenvalue of A; the computations "
                           "are continued.")
             e = ValueError(error_text)
             e.info = out[-1]
@@ -533,20 +531,17 @@ def tb05ad(n, m, p, jomega, A, B, C, job='NG'):
         e = ValueError("The shape of A is (" + str(A.shape[0]) + "," +
                        str(A.shape[1]) + "), but expected (" + str(n) +
                        "," + str(n) + ")")
-        e.info = -6  
         raise e
 
     if B.shape != (n, m):
         e = ValueError("The shape of B is (" + str(B.shape[0]) + "," +
                        str(B.shape[1]) + "), but expected (" + str(n) +
                        "," + str(m) + ")")
-        e.info = -8
         raise e
     if C.shape != (p, n):
         e = ValueError("The shape of C is (" + str(C.shape[0]) + "," +
                        str(C.shape[1]) + "), but expected (" + str(p) +
                        "," + str(n) + ")")
-        e.info = -10
         raise e
 
     # ----------------------------------------------------
