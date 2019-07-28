@@ -19,6 +19,7 @@
 #       MA 02110-1301, USA.
 
 from . import _wrapper
+import numpy as _np
 
 def mc01td(dico,dp,p):
     """ dp,stable,nz = mc01td(dico,dp,p)
@@ -68,6 +69,133 @@ def mc01td(dico,dp,p):
     if out[-2] > 0:
         warnings.warn('The degree of P(x) has been reduced to %i' %(dp-k))
     return out[:-2]
+
+
+def mb03rd(A, tol=0.0, pmax=1.0, X=None, sort='N'):
+    """
+    To reduce a matrix A in real Schur form to a block-diagonal form
+    using well-conditioned non-orthogonal similarity transformations.
+    The condition numbers of the transformations used for reduction
+    are roughly bounded by PMAX*PMAX, where PMAX is a given value.
+    The transformations are postmultiplied in a given
+    matrix X (e.g., the matrix that transformed A to real Schur form).
+    The real Schur form is optionally ordered, so that
+    clustered eigenvalues are grouped in the same block.
+
+    Required Arguments
+    ------------------
+
+    A       double precision array, size N by N.
+            The matrix A to be block-diagonalized, in real Schur form.
+
+    Optional Arguments
+    ------------------
+    tol     double precision
+            If sort = 'N' or 'C', this parameter is not referenced.
+
+            If the user sets tol = 0, then an implicitly computed,
+            default tolerance, defined by tol = SQRT( SQRT( EPS ) )
+            is used instead, as a relative tolerance, where EPS is
+            the machine precision (see LAPACK Library routine DLAMCH).
+
+            Otherwise, tol is the tolerance to be used in the ordering
+            of the diagonal blocks of the real Schur form matrix.
+            If the user sets TOL > 0, then the given value of TOL is
+            used as an absolute tolerance: a block i and a temporarily
+            fixed block 1 (the first block of the current trailing
+            submatrix to be reduced) are considered to belong to the
+            same cluster if their eigenvalues satisfy
+              | lambda_1 - lambda_i | <= tol.
+            If the user sets tol < 0, then the given value of TOL is
+            used as a relative tolerance: a block i and a temporarily
+            fixed block 1 are considered to belong to the same cluster
+            if their eigenvalues satisfy, for j = 1, ..., N,
+              | lambda_1 - lambda_i | <= | tol | * max | lambda_j |.
+
+    pmax    double precision
+            An upper bound for the infinity norm of elementary
+            submatrices of the individual transformations used for
+            reduction (see METHOD). It is required that pmax >= 1.0.
+
+    X       double precision array, of size N by N
+            On entry, if X is None, the N by N identity matrix will be
+            used. On exit, this array contains the product of the given
+            matrix X and the transformation matrix that reduced A to
+            block-diagonal form. The transformation matrix is itself a product
+            of non-orthogonal similarity transformations having elements
+            with magnitude less than or equal to pmax.
+
+    sort :  character
+            Specifies whether or not the diagonal blocks of the real
+            Schur form are reordered, as follows:
+            = 'N':  The diagonal blocks are not reordered;
+            = 'S':  The diagonal blocks are reordered before each
+                    step of reduction, so that clustered eigenvalues
+                    appear in the same block;
+            = 'C':  The diagonal blocks are not reordered, but the
+                    "closest-neighbour" strategy is used instead of
+                    the standard "closest to the mean" strategy
+                    (see METHOD);
+            = 'B':  The diagonal blocks are reordered before each
+                    step of reduction, and the "closest-neighbour"
+                    strategy is used (see METHOD).
+
+
+
+
+    Returns
+    --------
+    A :       The matrix A reduced to real block diagonal form.
+
+    nblcks :  integer
+              The number of diagonal blocks of the matrix A.
+
+    blsize :  integer array, dimension (N)
+              The first NBLCKS elements of this array contain the orders
+              of the resulting diagonal blocks of the matrix A.
+
+    eig_vals: complex array, dimension (N)
+              Contains the eigenvalues of the matrix A.
+
+    Raises
+    ------
+    ValueError the i-th argument had an illegal value.
+
+    """
+
+    hidden = ' (hidden by the wrapper)'
+    arg_list = ['jobx', 'sort', 'n'+hidden, 'pmax', 'a', 'lda'+hidden,
+                'x', 'ldx'+hidden,
+                'nblcks'+hidden, 'blsize'+hidden, 'wr'+hidden,
+                'wi'+hidden, 'tol', 'dwork'+hidden, 'info'+hidden]
+
+    jobx = 'U'
+    n = A.shape[0]
+
+    if X is None:
+        X = _np.eye(n)
+    if pmax < 1.0:
+        raise ValueError("Expected pmax >=1.0, but pmax=%s" % pmax)
+
+    # should return
+    # A, X, nblks, blsize, wr, wi, info
+    out = _wrapper.mb03rd(jobx, sort, n, pmax, A, X, tol)
+
+    if out[-1] == 0:
+        out = list(out)
+        wr = out[4]
+        wi = out[5]
+        eigs = wr + wi*1j
+        out.pop(5)
+        out[4] = eigs.squeeze()
+        return tuple(out[:-1])
+    else:
+        error_text = "The following argument had an illegal value: " \
+            + arg_list[-out[-1]-1]
+
+    e = ValueError(error_text)
+    e.info = out[-1]
+    raise e
 
 
 def mb05md(a, delta, balanc='N'):

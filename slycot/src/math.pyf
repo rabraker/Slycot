@@ -12,6 +12,24 @@ subroutine mc01td(dico,dp,p,stable,nz,dwork,iwarn,info) ! in :new:MC01TD.f
 	integer intent(out) :: info
 end subroutine mc01td
 
+subroutine mb03rd(jobx, sort, n, pmax, a, lda, x, ldx, nblcks, blsize, wr, wi, tol, dwork, info)
+  character        intent(in)                                      :: jobx
+  character        intent(in)                                      :: sort
+  integer          intent(n),  check(n>=0)                         :: n
+  double precision intent(in), check(pmax>=1.0)                    :: pmax
+  double precision intent(in,out,copy), depend(n), dimension(n, n) :: a
+  integer          intent(hide), depend(a)                         :: lda=shape(a,0)
+  double precision intent(in,out,copy), depend(n), dimension(n, n) :: x
+  integer          intent(hide),        depend(x)                  :: ldx=shape(x, 0)
+  integer          intent(out)                                     :: nblcks
+  integer          intent(out),         depend(n), dimension(n,1)  :: blsize
+  double precision intent(out),         depend(n), dimension(n,1)  :: wr
+  double precision intent(out),         depend(n), dimension(n,1)  :: wi
+  double precision intent(in)                                      :: tol
+  double precision intent(hide),        depend(n), dimension(n,1)  :: dwork
+  integer          intent(out)                                     :: info
+end subroutine mb03rd
+
 subroutine mb05md(balanc,n,delta,a,lda,v,ldv,y,ldy,valr,vali,iwork,dwork,ldwork,info) ! in MB05MD.f
     character intent(in):: balanc
     integer intent(in),check(n>=0) :: n
